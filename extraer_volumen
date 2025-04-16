@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 26 18:40:01 2024
+
+@author: cota
+"""
+
+
+import cv2
+import matplotlib.pyplot as plt
+import os
+import nibabel as nib
+import numpy as np
+import json
+from scipy.ndimage import label
+
+split = "test"
+ruta_target = f"/home/cota/datasets/{split}"
+archivos = os.listdir(ruta_target)
+#%%
+#Extraer imagenes
+archivos = os.listdir(f"{ruta_target}/gts")
+out_path = "/home/cota/datasets/hcuch_dataset_cc"
+# c = 0
+xx = 0
+for ii in range(len(archivos)):
+    print(f"\nprocesando {ii+1}/{len(archivos)}")
+    archivo = archivos[ii]
+    imagen_target = nib.load(f"{ruta_target}/gts/{archivo}")
+    datos_target = imagen_target.get_fdata()
+    imagen = nib.load(f"/home/cota/datasets/ventaneo/hcuch_{split}/{archivo}")
+    datos = imagen.get_fdata()
+    z = datos_target.shape[2]
+    y = datos_target.shape[1]
+    x = datos_target.shape[0]
+    # print(f"{archivo[:-7]}")
+    ruta_jsons = f"/home/cota/datasets/{split}/labels"
+    archivo_json = f"{archivo[:-7]}.json"
+    with open(f"{ruta_jsons}/{archivo_json}", 'r') as archivo:
+    # Cargar los datos del archivo en un diccionario de Python
+        json_ = json.load(archivo)
+    n = len(json_)
+    for i in json_:
+        # print("hola")
+        matriz_3d = (datos_target==float(i))
+        organo = json_[f'{i}']
+        organo__ = "".join((organo.split(",")[1]).split())
+        etiquetada, num_componentes = label(matriz_3d)
+        #ruta_mask = f"{out_path}/{split}/{organo__}/{ii}/masks"         #  Sin componentes conexas
+        #ruta_img = f"{out_path}/{split}/{organo__}/{ii}/images"         #
+        #os.makedirs(ruta_mask, exist_ok=True)
+        #os.makedirs(ruta_img, exist_ok=True)
+        # print("jaja",np.shape(matriz_3d))                        #
+        #for j in range(z):                                       #
+        #    plano = matriz_3d[:,:,j]                             #
+        #    if np.any(plano):                                    #
+        #        mask = plano*255                                   #
+        #        image = datos[:,:,j]                             #
+        #        cv2.imwrite(f"{ruta_mask}/{c:05}.jpg", mask.astype(np.uint8))    #
+        #        cv2.imwrite(f"{ruta_img}/{c:05}.jpg", image.astype(np.uint8))    #
+        #        if organo__ == 'pulmon':
+        #            c = c+1
+
+        # cv2.imwrite(ruta_mask, mask.astype(np.uint8))          #Con componentes conexas
+        # cv2.imwrite(ruta_img, image.astype(np.uint8))
+   
+        dir_mask = f"{out_path}/{split}/masks"
+        dir_image = f"{out_path}/{split}/images"
+        os.makedirs(dir_mask, exist_ok=True)
+        os.makedirs(dir_image, exist_ok=True)
+        # print("organo: ", organo)
+        if organo__ =='pulmon':
+         for c in range(num_componentes):
+             componente = (etiquetada == c+1)
+             # print(c)
+             #print(f"guardanando componentes conexas:{c+1}/{num_componentes} ")
+             # Buscar el plano de la componente conexa donde al menos hay un valor True
+             for z in range(componente.shape[2]):  # Iterar por los planos en el eje Z
+                 if np.any(componente[:, :,z]):  # Si existe al menos un True en el plano
+                     # print(f"\nPlano Z={z} con al menos un valor True:")s
+                     mask = componente[:,:,z]*255
+                     image = datos[:,:,z]
+                     plt.imshow(componente[z,:, : ], cmap='gray', interpolation='none')
+                     # plt.title(f'Plano Z={z} = 3')
+                     # plt.show()
+                     ruta_mask = f"{dir_mask}/{xx:05}.jpg"
+                     ruta_img = f"{dir_image}/{xx:05}.jpg"
+        #             # print(ruta_mask)
+                     cv2.imwrite(ruta_mask, mask.astype(np.uint8))
+                     cv2.imwrite(ruta_img, image.astype(np.uint8))
+                     xx = xx+1
+    # matrices_1 = []“«
+    # matrices_2 = []
+    # matrices_3 = []
+    # matrices_4 = []
+    # matrices_11 = []
+    # matrices_22 = []
+    # matrices_33 = []
+    # matrices_44 = []
+    # for k in range(z):
+    #     matriz_1 = np.zeros((x,y))
+    #     matriz_2 = np.zeros((x,y))
+    #     matriz_3 = np.zeros((x,y))
+    #     matriz_4 = np.zeros((x,y))
+    #     for j in range(y):
+    #         for i in range(x):
+    #             if datos_target[i,j,k] == 1:
+    #                 matriz_1[i,j] = 1
+    #             elif datos_target[i,j,k] == 2:
+    #                 matriz_2[i,j] = 2
+    #             elif datos_target[i,j,k] == 3:
+    #                 matriz_3[i,j] = 3
+    #             elif datos_target[i,j,k] == 4:
+    #                 matriz_4[i,j] = 4
+    #     if np.max(matriz_1) == 1:
+    #         matrices_1.append(matriz_1*255)
+    #         matrices_11.append(datos[:,:,k])
+    #     if np.max(matriz_2) == 2:
+    #         matrices_2.append(matriz_2*(255/2))
+    #         matrices_22.append(datos[:,:,k])
+    #     if np.max(matriz_3) == 3:
+    #         matrices_3.append(matriz_3*(255/3))
+    #         matrices_33.append(datos[:,:,k])
+    #     if np.max(matriz_4) == 4:
+    #         matrices_4.append(matriz_4*(255/4))
+    #         matrices_44.append(datos[:,:,k])
+
+    # #Guardar
+
+    # for i in range(len(matrices_1)):
+    #     mask1 = matrices_1[i]
+    #     image1 = matrices_11[i]
+    #     dir_mask1 = f"{out_path}/{ii}/higado_{ii}/masks"
+    #     dir_image1 = f"{out_path}/{ii}/higado_{ii}/images"
+    #     os.makedirs(dir_mask1, exist_ok=True)
+    #     os.makedirs(dir_image1, exist_ok=True)
+    #     cv2.imwrite(f"{dir_mask1}/hcuch_{i:05}.jpg", mask1.astype(np.uint8))
+    #     cv2.imwrite(f"{dir_image1}/hcuch_{i:05}.jpg", image1.astype(np.uint8))
+
+    # for i in range(len(matrices_2)):
+    #     mask2 = matrices_2[i]
+    #     image2 = matrices_22[i]
+    #     dir_mask2 = f"{out_path}/{ii}/bazo_{ii}/masks"
+    #     dir_image2 = f"{out_path}/{ii}/bazo_{ii}/images"
+    #     os.makedirs(dir_mask2, exist_ok=True)
+    #     os.makedirs(dir_image2, exist_ok=True)
+    #     cv2.imwrite(f"{dir_mask2}/hcuch_{i:05}.jpg", mask2.astype(np.uint8))
+    #     cv2.imwrite(f"{dir_image2}/hcuch_{i:05}.jpg", image2.astype(np.uint8))
+
+    # for i in range(len(matrices_3)):
+    #     mask3 = matrices_3[i]
+    #     image3 = matrices_33[i]
+    #     dir_mask3 = f"{out_path}/{ii}/abdomen_{ii}/masks"
+    #     dir_image3 = f"{out_path}/{ii}/abdomen_{ii}/images"
+    #     os.makedirs(dir_mask3, exist_ok=True)
+    #     os.makedirs(dir_image3, exist_ok=True)
+    #     cv2.imwrite(f"{dir_mask3}/hcuch_{i:05}.jpg", mask3.astype(np.uint8))
+    #     cv2.imwrite(f"{dir_image3}/hcuch_{i:05}.jpg", image3.astype(np.uint8))
+
+    # for i in range(len(matrices_4)):
+    #     mask4 = matrices_4[i]
+    #     image4 = matrices_44[i]
+    #     dir_mask4 = f"{out_path}/{ii}/abdomen_{ii}/masks"
+    #     dir_image4 = f"{out_path}/{ii}/abdomen_{ii}/images"
+    #     os.makedirs(dir_mask4, exist_ok=True)
+    #     os.makedirs(dir_image4, exist_ok=True)
+    #     cv2.imwrite(f"{dir_mask4}/hcuch_{i:05}.jpg", mask4.astype(np.uint8))
+    #     cv2.imwrite(f"{dir_image4}/hcuch_{i:05}.jpg", image4.astype(np.uint8))
+#%%
