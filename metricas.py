@@ -27,7 +27,7 @@ def TP_FP_TN_FN(mask, truth):
 #%%
 u = 150
 ckpt = '002_ckpt'
-ruta_pred = f'/home/cota/EMC-Click/experiments/evaluation_logs/others/{ckpt}/predictions_vis/test_pulmon/matrices'
+ruta_pred = f'/home/cota/EMC-Click/experiments/evaluation_logs/others/{ckpt}/predictions_vis/test_pulmon/matrices_{ckpt}'
 ruta_truth = '/home/cota/datasets/hcuch_dataset/test_pulmon/masks'
 organo = "pulmon"
 # def calculate_metrics(ruta_pred, ruta_truth, organo):
