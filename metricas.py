@@ -21,7 +21,7 @@ def TP_FP_TN_FN(mask, truth):
     FP = np.sum((mask_binary == 1) & (ground_truth_binary == 0))
     TN = np.sum((mask_binary == 0) & (ground_truth_binary == 0))
     FN = np.sum((mask_binary == 0) & (ground_truth_binary == 1))
-    
+
     return TP, FP, TN, FN
 
 #%%
@@ -30,7 +30,7 @@ ckpt = '002_ckpt'
 ruta_pred = f'/home/cota/EMC-Click/experiments/evaluation_logs/others/{ckpt}/predictions_vis/test_pulmon/matrices'
 ruta_truth = '/home/cota/datasets/hcuch_dataset/test_pulmon/masks'
 organo = "pulmon"
-# def calculate_metrics(ruta_pred, ruta_truth, organo):   
+# def calculate_metrics(ruta_pred, ruta_truth, organo):
 archivos_pred = sorted((os.listdir(ruta_pred)), reverse=True)
 archivos_truth = sorted(os.listdir(ruta_truth))
 for i in range(len(archivos_truth)):
@@ -63,7 +63,7 @@ for i in range(len(names)):
     mask_truth = cv2.imread(f"{ruta_truth}/{archivos_truth[i][1]}")[:,:,0]
     # print(f"Metricas entre {names[i]} y {archivos_truth[i][0]}")
     beetwen.append(f"Metricas entre {names[i]} y {archivos_truth[i][1]}")
-     
+
     TP, FP, TN, FN = TP_FP_TN_FN(mask_pred, mask_truth)
     area = TP + FN
     dc = 2*TP/(2*TP+FP+FN)
@@ -83,7 +83,7 @@ data = {'Dice coeficient': dice,
          'Recall': R,
          'Area': A,
          'Areapred': AP,
-         'ImageID':ID,        
+         'ImageID':ID,
          }
 data = pd.DataFrame(data)
 # organ = organo
@@ -96,13 +96,13 @@ mean_dice =np.mean( df__['Dice coeficient'])
 print(f"Metricas {ckpt}\n\nPrecision:{mean_precision}\nRecall:{mean_recall}\nDice:{mean_dice}")
 #%%
 plt.scatter(data['Areapred'], data['Recall'])
-plt.title(f'scatterplot gamma 2')
+plt.title(f'scatterplot {ckpt}')
 plt.xlabel('Area pred')
 plt.ylabel('Recall')
 plt.show()
 plt.close()
 plt.scatter(data['Areapred'], data['Precision'])
-plt.title(f'scatterplot gamma 2')
+plt.title(f'scatterplot {ckpt}')
 plt.xlabel('Area pred')
 plt.ylabel('Precision')
 plt.show()
